@@ -103,7 +103,7 @@ def main():
     # square loss
     recon_loss = tf.keras.backend.sum(tf.keras.backend.square(ae_outputs-ae_inputs))  
     # kl loss
-    kl_loss =-0.5 * tf.keras.backend.sum(1 + log_stddev - tf.keras.backend.square(mean) - tf.keras.backend.square(tf.keras.backend.exp(log_stddev)), axis=-1)
+    kl_loss =-0.5 * tf.keras.backend.sum(1 + log_stddev - tf.keras.backend.square(mean) - tf.keras.backend.square(tf.keras.backend.exp(log_stddev)))
     # total loss
     loss = kl_loss + recon_loss
 
@@ -120,6 +120,7 @@ def main():
         # open model
         saver.restore(sess, model_dir + "/model.ckpt")
         # run the sample
+        print(contents)
         for i in range(len(contents)):
             orig_address = contents[i]
             aseg_address = aseg[i]
@@ -136,7 +137,9 @@ def main():
             batch_img =  orig_img[...,None]
             batch_img = np.asarray( [batch_img])
 
-            recon_img = sess.run([ae_outputs], feed_dict={ae_inputs: batch_img})[0]
+            recon_img, output_loss = sess.run([ae_outputs,loss], feed_dict={ae_inputs: batch_img})
+
+            # assert np.array_equal(recon_img.shape, output_loss.shape)
 
             print_img = recon_img.reshape( (256,256,256)  )
             # savethe output image ! change the save addres for your use.
