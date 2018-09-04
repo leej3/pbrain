@@ -6,6 +6,7 @@ import sys
 
 from pbrain.train import train as _train
 from pbrain.predict import predict as _predict
+from pbrain.pval import pval as _pval
 
 from pbrain.util import clean_csv
 from pbrain.util import setup_exceptionhook
@@ -77,10 +78,18 @@ def create_parser():
     ppp.add_argument(
         '-m', '--model-dir', required=True, help="Path to directory containing the model.")
     ###
-    ppp.add_argument(
-        '--n-samples', type=int, default = 1,
-        help="Number of sampling.")
     ppp.add_argument('--output-dir',required= False, help="Name of output directory.",default=None)
+
+    # pval subparser
+    pv = subparsers.add_parser('pval', help="Get pvals for each scan in a csv.")
+    pv.add_argument('--input-csv', help="Filepath to csv containing scan paths.")
+    pv.add_argument('--output-csv', help="Name out output csv filename.")
+    pvp = pv.add_argument_group('pval arguments')
+    pvp.add_argument(
+        '-m', '--model-dir', required=True, help="Path to directory containing the model.")
+    ###
+
+    pvp.add_argument('--output-dir',required= False, help="Name of output directory.",default=None)
 
     return p
 
@@ -112,6 +121,15 @@ def predict(params):
         output_dir=params['output_dir'],
         )
 
+def pval(params):
+    _pval(
+        model_dir=params['model_dir'],
+        input_csv=params['input_csv'],
+        output_csv=params['output_csv'],
+        reference_csv=params['reference_csv'],
+        output_dir=params['output_dir'],
+        )
+
 
 def main(args=None):
     if args is None:
@@ -129,6 +147,9 @@ def main(args=None):
 
     if params['subparser_name'] == 'predict':
         predict(params=params)
+
+    if params['subparser_name'] == 'pval':
+        pval(params=params)
 
     if params['subparser_name'] == 'csv':
         clean_csv(params['input_csv'], params['output_csv'])
