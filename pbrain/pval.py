@@ -13,9 +13,10 @@ from pathlib import Path
 
 def pval(model_dir,input_csv,output_csv,reference_csv,output_dir):
     
-	df = pd.read_csv(input_csv)
-	if not 'score' in df.columns:
+    df = pd.read_csv(input_csv)
+    if not 'score' in df.columns:
     	predict(model_dir,input_csv,output_csv,output_dir)
     	df = pd.read_csv(output_csv)
     
-    	df is a dataframe with image path and scores. build empirical dist. from input_csv
+    	# TODO: df is a dataframe with image path and scores. build empirical
+    	# distribution using reference csv and give a pval for input csv

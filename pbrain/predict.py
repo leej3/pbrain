@@ -38,7 +38,7 @@ def predict(model_dir,input_csv,output_csv,output_dir):
             batch_img = np.asarray( [batch_img])
             
             recon_img, output_loss = sess.run([ae_outputs,loss], feed_dict={ae_inputs: batch_img})
-            df.loc[df[df.columns[0]] == orig_path,'losses'] = repr(output_loss)
+            df.loc[df[df.columns[0]] == orig_path,'score'] = repr(output_loss)
             if output_dir:
                 print_img = recon_img.reshape( (256,256,256))
                 nibImg = nib.spatialimages.SpatialImage(
