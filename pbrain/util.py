@@ -4,6 +4,9 @@ import numpy as np
 import nibabel as nib
 import pandas as pd
 import sys
+import tensorflow as tf
+from pathlib import Path
+
 # sys.excepthook = lambda exctype,exc,traceback : print("{}: {}".format(exctype.__name__,exc))
 def clean_csv(input_csv,output_csv):
 	df = pd.read_csv(input_csv)
@@ -23,7 +26,7 @@ def check_nibload(input_path):
 		return False
 	return True
 
-	
+
 
 def zscore(a):
     """Return array of z-scored values."""
@@ -58,3 +61,50 @@ def setup_exceptionhook():
 
     sys.excepthook = _pdb_excepthook
 
+
+def get_image(image_path):
+	orig_img =  nib.load(image_path)
+	z_img = zscore(orig_img.get_data())
+	return z_img, orig_img
+
+def get_batch(content, i,batch_size):
+    # This method returns a batch and its labels. 
+
+    # input: 
+    #   content: list of string address of original images.
+    #   i : location to extract the batches from. 
+
+    # output: 
+    #   imgs: 5D numpy array of image btaches. Specifically, it takes the shape of (batch_size, 256, 256, 256, 1)
+    #   arrName: list of string addresses that are labels for imgs. 
+    arr = []
+    for j in range(i, i + batch_size):
+        z_img,_ = get_image(content[j])
+        arr.append( z_img)
+    imgs = np.array(arr)
+    imgs = imgs[..., None]
+    return imgs
+
+def csv_to_batches(csv,batch_size):
+	df = pd.read_csv(csv)
+
+	df['exists'] = df[df.columns[0]].apply(lambda x: Path(x).exists())
+	df = df.query('exists')
+	contents = df[df.columns[0]].sample(frac=1)
+
+	# make the image list a multiple of batch_size
+	contents = contents[0: len(contents) // (batch_size) * batch_size]
+
+	# calculate the number of batches per epoch
+	batch_per_ep = len(contents) // batch_size
+	return contents, batch_per_ep, df
+
+      
+def get_loss(ae_inputs,ae_outputs,mean,log_stddev):
+    # square loss
+    recon_loss = tf.keras.backend.sum(tf.keras.backend.square(ae_outputs-ae_inputs))  
+    # kl loss
+    kl_loss =-0.5 * tf.keras.backend.sum(1 + log_stddev - tf.keras.backend.square(mean) - tf.keras.backend.square(tf.keras.backend.exp(log_stddev)))
+    #total loss
+    loss = kl_loss + recon_loss
+    return loss

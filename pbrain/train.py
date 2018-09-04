@@ -8,52 +8,19 @@ from pbrain.volume import zscore
 import pandas as pd
 from pathlib import Path
 from pbrain.models.vae3d import autoencoder
+from pbrain.util import get_batch,get_loss,csv_to_batches
 # from pbrain.util import zscore
 
 
-def get_batch(content, i,batch_size):
-    # This method returns a batch and its labels. 
 
-    # input: 
-    #   content: list of string address of original images.
-    #   i : location to extract the batches from. 
 
-    # output: 
-    #   imgs: 5D numpy array of image btaches. Specifically, it takes the shape of (batch_size, 256, 256, 256, 1)
-    #   arrName: list of string addresses that are labels for imgs. 
-    arr = []
-    for j in range(i, i + batch_size):
-        orig_img = zscore(np.asarray( nib.load(content[j]).dataobj ))
-        arr.append( orig_img)
-    imgs = np.array(arr)
-    imgs = imgs[..., None]
-    return imgs
-
-      
 def train(model_dir,csv,batch_size,n_epochs,multi_gpu):
-    lr = 0.0001        # Learning rate
-
-    df = pd.read_csv(csv)
-
-    df['exists'] = df[df.columns[0]].apply(lambda x: Path(x).exists())
-    df = df.query('exists')
-    contents = df[df.columns[0]].sample(frac=1)
-
-    # make the image list a multiple of batch_size
-    contents = contents[0: len(contents) // (batch_size) * batch_size]
-
-    # calculate the number of batches per epoch
-    batch_per_ep = len(contents) // batch_size
-
+    lr = 0.0001
+    contents, batch_per_ep, _ = csv_to_batches(csv, batch_size)
     ae_inputs = tf.placeholder(tf.float32, (None, 256, 256, 256, 1))  # input to the network (MNIST images)
     ae_outputs, mean, log_stddev = autoencoder(ae_inputs)  # create the Autoencoder network
 
-    # square loss
-    recon_loss = tf.keras.backend.sum(tf.keras.backend.square(ae_outputs-ae_inputs))  
-    # kl loss
-    kl_loss =-0.5 * tf.keras.backend.sum(1 + log_stddev - tf.keras.backend.square(mean) - tf.keras.backend.square(tf.keras.backend.exp(log_stddev)))
-    #total loss
-    loss = kl_loss + recon_loss
+    loss = get_loss(ae_inputs,ae_outputs,mean,log_stddev)
 
     train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(loss)
 
