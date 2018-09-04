@@ -5,6 +5,8 @@ import argparse
 import sys
 
 from pbrain.train import train as _train
+from pbrain.predict import predict as _predict
+
 from pbrain.util import clean_csv
 from pbrain.util import setup_exceptionhook
 
@@ -56,7 +58,7 @@ def create_parser():
         '-l', '--learning-rate', required=False, type=float,default=0.001,
         help="Learning rate to use with optimizer for training")
     t.add_argument(
-        '-b', '--batch-size', required=False, type=int,default=10,
+        '-b', '--batch-size', required=False, type=int,default=1,
         help="Number of samples per batch. If `--multi-gpu` is specified,"
              " batch is split across available GPUs.")
     t.add_argument(
@@ -64,38 +66,21 @@ def create_parser():
         help="Number of training epochs")
     t.add_argument(
         '--multi-gpu', action='store_true',
-        help="Train across all available GPUs. Batches are split across GPUs.")
+        help="Train across all available GPUs. Batches are split across GPUs. Not yet implemented")
 
 
     # Prediction subparser
     pp = subparsers.add_parser('predict', help="Predict using SavedModel")
-    pp.add_argument('input', help="Filepath to volume on which to predict.")
-    pp.add_argument('output', help="Name out output file.")
+    pp.add_argument('--input-csv', help="Filepath to csv containing scan paths.")
+    pp.add_argument('--output-csv', help="Name out output csv filename.")
     ppp = pp.add_argument_group('prediction arguments')
     ppp.add_argument(
-        '-b', '--block-shape', nargs=3, required=True, type=int,
-        help="Shape of blocks on which predict. Non-overlapping blocks of this"
-             " shape are taken from the inputs for prediction.")
-    ppp.add_argument(
-        '--batch-size', default=4, type=int,
-        help="Number of sub-volumes per batch for prediction. Use a smaller"
-             " value if memory is insufficient.")
-    ppp.add_argument(
-        '-m', '--model', required=True, help="Path to saved model.")
+        '-m', '--model-dir', required=True, help="Path to directory containing the model.")
     ###
     ppp.add_argument(
         '--n-samples', type=int, default = 1,
         help="Number of sampling.")
-    ppp.add_argument('--return_entropy', action='store_true',
-        help = 'if you want to return entropy, add this flag.')
-    ppp.add_argument('--return_variance', action='store_true',
-        help ='if you want to return variance, add this flag.')
-    ppp.add_argument('--return_array_from_images', action = 'store_true',
-        help = 'if you want to return array instead of image, add this flag.')
-    ppp.add_argument('--samplewise-minmax', action='store_true',
-        help = 'set normalizer to be minmax. NOTE, normalizer cannot be both minmax and zscore')
-    ppp.add_argument('--samplewise-zscore', action='store_true',
-        help = 'set normalizer to be zscore. NOTE, normalizer cannot be both minmax and zscore')
+    ppp.add_argument('--output-dir',required= False, help="Name of output directory.",default=None)
 
     return p
 
@@ -119,6 +104,14 @@ def train(params):
         multi_gpu=params['multi_gpu'],
         )
 
+def predict(params):
+    _predict(
+        model_dir=params['model_dir'],
+        input_csv=params['input_csv'],
+        output_csv=params['output_csv'],
+        output_dir=params['output_dir'],
+        )
+
 
 def main(args=None):
     if args is None:
@@ -133,6 +126,9 @@ def main(args=None):
 
     if params['subparser_name'] == 'train':
         train(params=params)
+
+    if params['subparser_name'] == 'predict':
+        predict(params=params)
 
     if params['subparser_name'] == 'csv':
         clean_csv(params['input_csv'], params['output_csv'])
