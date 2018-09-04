@@ -1,0 +1,3 @@
+﻿Original Image,Groud Truth,Mean,Variance
+tests/data/pac_14720_orig.nii.gz,tests/data/pac_14720_aseg.nii.gz,tests/data/s10_14720_means.nii.gz,tests/data/s10_14720_variance.nii.gz
+tests/data/pac_14366_orig.nii.gz,tests/data/pac_14366_aseg.nii.gz,tests/data/14366_means.nii.gz,tests/data/14366_variance.nii.gz
