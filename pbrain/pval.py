@@ -17,25 +17,34 @@ import scipy as sp
 
 
 
-def pval(model_dir,input_csv,output_csv,reference_csv,output_dir):
+def pval(model_dir,input_csv,output_csv,reference_csv=None,reference_table=None,table_path_out='reference_table.npy',output_dir):
+	assert reference_csv or reference_table
+	if reference_table:
+		# readtable
+		pass
 
+	else reference_csv:
+		# read csv, convert to kde
     # Load test scores
-    test_df = pd.read_csv(input_csv)
-    if not 'score' in test_df.columns:
-    	predict(model_dir,input_csv,output_csv,output_dir)
-    	test_df = pd.read_csv(output_csv)
-    test_scores = test_df['score'].values
-    # Load training scores
-    train_df = pd.read_csv(reference_csv)
-    scores = train_df['score'].values # scores for training data
-    # Choose bandwidth for Kernel Density Estimation
-    iqr = sp.stats.iqr(scores) # use IQR to set maximum bandwidth for KDE
-    params = {'bandwidth': np.logspace(-2, 0, 20) * iqr}
-    grid = GridSearchCV(KernelDensity(), params, cv = 20)
-    grid.fit(scores.reshape((-1,1)))
-    bd = grid.best_estimator_.bandwidth
-    # Compute lower tails on test data using KDE with Gaussian kernel
-    diffs = np.dot(test_scores.reshape((-1,1)), np.ones((1, len(scores)))) - np.dot(np.ones((len(test_scores), 1)), scores.reshape((1,-1))) # a n_test x n_train matrix of differences between test and training points
-    pvals = np.mean(norm.cdf(diffs, loc = 0, scale = bd), 1) # the p-values obtained by averaging lower tails of all training points for each test point
+	    test_df = pd.read_csv(input_csv)
+	    if not 'score' in test_df.columns:
+	    	predict(model_dir,input_csv,output_csv,output_dir)
+	    	test_df = pd.read_csv(output_csv)
+	    test_scores = test_df['score'].values
+	    # Load training scores
+	    train_df = pd.read_csv(reference_csv)
+	    scores = train_df['score'].values # scores for training data
+	    # Choose bandwidth for Kernel Density Estimation
+	    iqr = sp.stats.iqr(scores) # use IQR to set maximum bandwidth for KDE
+	    params = {'bandwidth': np.logspace(-2, 0, 20) * iqr}
+	    grid = GridSearchCV(KernelDensity(), params, cv = 20)
+	    grid.fit(scores.reshape((-1,1)))
+	    bd = grid.best_estimator_.bandwidth
+	    # Compute lower tails on test data using KDE with Gaussian kernel
+	    diffs = np.dot(test_scores.reshape((-1,1)), np.ones((1, len(scores)))) - np.dot(np.ones((len(test_scores), 1)), scores.reshape((1,-1))) # a n_test x n_train matrix of differences between test and training points
+	    pvals = np.mean(norm.cdf(diffs, loc = 0, scale = bd), 1) # the p-values obtained by averaging lower tails of all training points for each test point
+
+
+	#compute pvals from reference table
     return pvals
 
