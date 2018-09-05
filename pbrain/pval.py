@@ -7,16 +7,35 @@ from pbrain.models.vae3d import autoencoder
 from pbrain.predict import predict
 from pbrain.util import get_loss,csv_to_batches, get_image
 from pathlib import Path
+
+from sklearn.neighbors import KernelDensity
+from sklearn.model_selection import GridSearchCV
+from scipy.stats import norm
+import scipy as sp
+
 # from pbrain.util import zscore
 
 
 
 def pval(model_dir,input_csv,output_csv,reference_csv,output_dir):
-    
-    df = pd.read_csv(input_csv)
-    if not 'score' in df.columns:
+
+    # Load test scores
+    test_df = pd.read_csv(input_csv)
+    if not 'score' in test_df.columns:
     	predict(model_dir,input_csv,output_csv,output_dir)
-    	df = pd.read_csv(output_csv)
-    
-    	# TODO: df is a dataframe with image path and scores. build empirical
-    	# distribution using reference csv and give a pval for input csv
+    	test_df = pd.read_csv(output_csv)
+    test_scores = test_df['score'].values
+    # Load training scores
+    train_df = pd.read_csv(reference_csv)
+    scores = train_df['score'].values # scores for training data
+    # Choose bandwidth for Kernel Density Estimation
+    iqr = sp.stats.iqr(scores) # use IQR to set maximum bandwidth for KDE
+    params = {'bandwidth': np.logspace(-2, 0, 20) * iqr}
+    grid = GridSearchCV(KernelDensity(), params, cv = 20)
+    grid.fit(scores.reshape((-1,1)))
+    bd = grid.best_estimator_.bandwidth
+    # Compute lower tails on test data using KDE with Gaussian kernel
+    diffs = np.dot(test_scores.reshape((-1,1)), np.ones((1, len(scores)))) - np.dot(np.ones((len(test_scores), 1)), scores.reshape((1,-1))) # a n_test x n_train matrix of differences between test and training points
+    pvals = np.mean(norm.cdf(diffs, loc = 0, scale = bd), 1) # the p-values obtained by averaging lower tails of all training points for each test point
+    return pvals
+
