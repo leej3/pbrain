@@ -45,7 +45,7 @@ def pval(model_dir,input_csv,output_csv,reference_csv=None,reference_table=None,
         # Compute lower tails on reference using KDE with Gaussian kernel
         diffs = np.dot(xs.reshape((-1,1)), np.ones((1, len(scores)))) - np.dot(np.ones((len(xs), 1)), scores.reshape((1,-1))) # a n_test x n_train matrix of differences between xs and training points
         pvals = np.mean(1-norm.cdf(diffs, loc = 0, scale = bd), 1) # the p-values obtained by averaging upper tails of all training points for each grid point
-        rtable = np.array([diffs, np.log(pvals)]).T
+        rtable = np.array([xs, np.log(pvals)]).T
         np.save(table_path_out, rtable)
     
     #compute pvals from reference table
