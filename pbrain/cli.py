@@ -7,6 +7,7 @@ import sys
 from pbrain.train import train as _train
 from pbrain.predict import predict as _predict
 from pbrain.pval import pval as _pval
+from pbrain.csv_to_pvals import csv_to_pvals as _csv_to_pvals
 
 from pbrain.util import clean_csv
 from pbrain.util import setup_exceptionhook
@@ -85,13 +86,26 @@ def create_parser():
     pv.add_argument('--input-csv', help="Filepath to csv containing scan paths.")
     pv.add_argument('--output-csv', help="Name out output csv filename.")
     pvp = pv.add_argument_group('pval arguments')
-    pvp.add_argument(
-        '-m', '--model-dir', required=True, help="Path to directory containing the model.")
     ###
-
-    pvp.add_argument('--output-dir',required= False, help="Name of output directory.",default=None)
     pvp.add_argument('--reference-csv',required= False, help="Reference csv containing scores for "
-    	"the training set.",default=None)
+        "the training set.",default=None)
+
+
+    # csv_to_pvals subparser
+    c2p = subparsers.add_parser('csv_to_pvals', help="Predict using SavedModel")
+    c2p.add_argument('--input-csv', help="Filepath to csv containing scan paths.")
+    c2p.add_argument('--output-csv',required= False, help="Name out output csv filename.",default=None)
+    c2pp = c2p.add_argument_group('csv_to_pvals arguments')
+    c2pp.add_argument(
+        '-m', '--model-dir',required= False, help="Path to directory containing the model.",default=None)
+    ###
+    c2pp.add_argument('--output-dir',required= False, help="Name of output directory.",default=None)
+    c2pp.add_argument('--reference-csv',required= False, help="Reference csv containing scores for "
+                    "the training set.",default=None)
+    c2pp.add_argument('--clean-input-csv',default=True,type=bool,
+                     help="Flag to check that all images in the csv can be loaded into nibabel. Write out a cleaned csv")
+
+
 
     return p
 
@@ -125,11 +139,19 @@ def predict(params):
 
 def pval(params):
     _pval(
-        model_dir=params['model_dir'],
         input_csv=params['input_csv'],
         output_csv=params['output_csv'],
         reference_csv=params['reference_csv'],
+        )
+
+def csv_to_pvals(params):
+    _csv_to_pvals(
+        input_csv=params['input_csv'],
+        model_dir=params['model_dir'],
         output_dir=params['output_dir'],
+        output_csv=params['output_csv'],
+        reference_csv=params['reference_csv'],
+        clean_input_csv=params['clean_input_csv'],
         )
 
 
@@ -152,6 +174,9 @@ def main(args=None):
 
     if params['subparser_name'] == 'pval':
         pval(params=params)
+
+    if params['subparser_name'] == 'csv_to_pvals':
+        csv_to_pvals(params=params)
 
     if params['subparser_name'] == 'csv':
         clean_csv(params['input_csv'], params['output_csv'])
