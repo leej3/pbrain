@@ -90,6 +90,8 @@ def create_parser():
     ###
 
     pvp.add_argument('--output-dir',required= False, help="Name of output directory.",default=None)
+    pvp.add_argument('--reference-csv',required= False, help="Reference csv containing scores for "
+    	"the training set.",default=None)
 
     return p
 

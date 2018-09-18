@@ -17,27 +17,29 @@ import scipy as sp
 
 
 
-def pval(model_dir,input_csv,output_csv,reference_csv=None,output_dir=None):
+def pval(input_csv,output_csv,reference_csv=None):
+
     # Load test scores
     test_df = pd.read_csv(input_csv)
     if not 'score' in test_df.columns:
         predict(model_dir,input_csv,output_csv,output_dir)
         test_df = pd.read_csv(output_csv)
     test_scores = test_df['score'].values
-
+    # Load training scores
     train_df = pd.read_csv(reference_csv)
     scores = train_df['score'].values # scores for training data
     # Choose bandwidth for Kernel Density Estimation
     iqr = sp.stats.iqr(scores) # use IQR to set maximum bandwidth for KDE
-    params = {'bandwidth': np.array([0.1, 0.2, 0.3, 0.4]) * iqr}
-    grid = GridSearchCV(KernelDensity(), params, cv = 4)
-    grid.fit(scores.reshape((-1,1)))
-    bd = grid.best_estimator_.bandwidth
-    # Generate reference table
-    a,b = np.percentile(scores, [0.1, 99.9])
-    xs = test_scores
-    diffs = np.dot(xs.reshape((-1,1)), np.ones((1, len(scores)))) - np.dot(np.ones((len(xs), 1)), scores.reshape((1,-1))) # a n_test x n_train matrix of differences between xs and training points
-    pvals = np.mean(1-norm.cdf(diffs, loc = 0, scale = bd), 1) # the p-values obtained by averaging upper tails of all training points for each grid point
-    #return pvals
-    df['pvalue'] = pvals
-    df.to_csv(output_csv)
+
+    bd = iqr / 4
+    print("Computing pvals...")
+    # Compute lower tails on test data using KDE with Gaussian kernel
+    diffs = np.dot(test_scores.reshape((-1,1)), np.ones((1, len(scores)))) - np.dot(np.ones((len(test_scores), 1)), scores.reshape((1,-1))) # a n_test x n_train matrix of differences between test and training points
+    pvals = np.mean(norm.cdf(diffs, loc = 0, scale = bd), 1) # the p-values obtained by averaging lower tails of all training points for each test point
+    test_df['pval'] = pvals
+    print("Writing csv...")
+    test_df.to_csv(output_csv,index = False)
+
+
+    #compute pvals from reference table
+    return pvals
