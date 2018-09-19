@@ -17,6 +17,13 @@ def clean_csv(input_csv,output_csv):
 		to_csv(output_csv,index=False,sep=',')
 		)
 
+
+def check_path_is_writable(p,path_type= 'output csv'):
+    if not os.access(p,mode = os.W_OK):
+        raise ValueError(f"Do not have write access to {p}"
+                        "which has been specified as the {path_type} path")
+
+
 def str2bool(v):
     if v.lower() in ('yes', 'true', 't', 'y', '1'):
         return True
