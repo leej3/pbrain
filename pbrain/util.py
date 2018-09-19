@@ -6,6 +6,7 @@ import pandas as pd
 import sys
 import tensorflow as tf
 from pathlib import Path
+import argparse
 
 # sys.excepthook = lambda exctype,exc,traceback : print("{}: {}".format(exctype.__name__,exc))
 def clean_csv(input_csv,output_csv):
@@ -15,6 +16,15 @@ def clean_csv(input_csv,output_csv):
 		drop('loads',inplace=False).
 		to_csv(output_csv,index=False,sep=',')
 		)
+
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 
 def check_nibload(input_path):
 
