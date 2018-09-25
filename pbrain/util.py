@@ -8,7 +8,7 @@ import tensorflow as tf
 from pathlib import Path
 import argparse
 import os
-from nilearn import image, plotting, datasets
+from nilearn import image, datasets
 
 from nibabel import processing
 
