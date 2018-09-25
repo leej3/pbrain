@@ -74,7 +74,7 @@ def create_parser():
 
     # Prediction subparser
     pp = subparsers.add_parser('predict', help="Predict using SavedModel")
-    pp.add_argument('--input-csv', help="Filepath to csv containing scan paths.")
+    pp.add_argument('--input-csv',required=True, help="Filepath to csv containing scan paths.")
     pp.add_argument('--output-csv', help="Name out output csv filename.")
     ppp = pp.add_argument_group('prediction arguments')
     ppp.add_argument(
@@ -84,7 +84,7 @@ def create_parser():
 
     # pval subparser
     pv = subparsers.add_parser('pval', help="Get pvals for each scan in a csv.")
-    pv.add_argument('--input-csv', help="Filepath to csv containing scan paths.")
+    pv.add_argument('--input-csv',required=True, help="Filepath to csv containing scan paths.")
     pv.add_argument('--output-csv', help="Name out output csv filename.")
     pvp = pv.add_argument_group('pval arguments')
     ###
@@ -94,7 +94,7 @@ def create_parser():
 
     # csv_to_pvals subparser
     c2p = subparsers.add_parser('csv_to_pvals', help="Predict using SavedModel")
-    c2p.add_argument('--input-csv', help="Filepath to csv containing scan paths.")
+    c2p.add_argument('--input-csv', required=True,help="Filepath to csv containing scan paths.")
     c2p.add_argument('--output-csv',required= False, help="Name out output csv filename.",default=None)
     c2pp = c2p.add_argument_group('csv_to_pvals arguments')
     c2pp.add_argument(
