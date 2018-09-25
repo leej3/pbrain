@@ -24,7 +24,7 @@ def clean_csv(input_csv, output_csv):
      )
 
 
-def conform_csv(input_csv, output_csv, out_shape, voxel_dims):
+def conform_csv(input_csv, output_csv, output_shape, voxel_dims):
     """
     With an input csv of scans, returns a csv of paths to scans that have been
     conformed as described by mri_convert in freesurfer. Briefly, returns a
@@ -38,7 +38,7 @@ def conform_csv(input_csv, output_csv, out_shape, voxel_dims):
         for the neural network that have been conformed to cubic images with
         isotropic voxel dimensions.
 
-    out_shape : tuple of ints
+    output_shape : tuple of ints
         X,Y, and Z dimensions of the output image.
 
     voxel_dims : list of ints
@@ -50,9 +50,9 @@ def conform_csv(input_csv, output_csv, out_shape, voxel_dims):
     for ii, scan_path in enumerate(df.iloc[:, scan_col]):
         img = nib.load(scan_path)
         # Check image requires conformation
-        if (img.shape != out_shape) or (img.header.get_zooms() != voxel_dims):
+        if (img.shape != output_shape) or (img.header.get_zooms() != voxel_dims):
             conformed = conform_scan(img=img,
-                                     out_shape=out_shape,
+                                     output_shape=output_shape,
                                      voxel_dims=voxel_dims)
             conformed.header.set_zooms((voxel_dims))
             # Write image to disk
@@ -190,7 +190,7 @@ def get_loss_old(ae_inputs, ae_outputs, mean, log_stddev):
     return loss
 
 
-def conform_image(img, out_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
+def conform_image(img, output_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
     """
     Imitation of mri_convert from freesurfer. Consists of minimal processing
     for pipelines involving neural networks. The default output is an image
@@ -202,7 +202,7 @@ def conform_image(img, out_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
     ----------
     img : nibabel.nifti1.Nifti1Image
         An alternative to providing scan_path. 
-    out_shape : tuple of 3 ints
+    output_shape : tuple of 3 ints
         number of voxels in each dimension.
     voxel_dims : list
         Length in mm for x,y, and z dimensions of each voxel.
@@ -217,7 +217,7 @@ def conform_image(img, out_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
         img, voxel_sizes=voxel_dims)
     # use resample_img to resize to output dimensions defined by user
     target_affine = img.affine.copy()
-    target_affine[:3, 3] = target_affine[:3, 3] * out_shape / img.shape
+    target_affine[:3, 3] = target_affine[:3, 3] * output_shape / img.shape
     resampled_img = image.resample_img(
-        resampled_nib, target_shape=out_shape, target_affine=target_affine)
+        resampled_nib, target_shape=output_shape, target_affine=target_affine)
     return resampled_img

@@ -10,6 +10,7 @@ from pbrain.pval import pval as _pval
 from pbrain.csv_to_pvals import csv_to_pvals as _csv_to_pvals
 
 from pbrain.util import clean_csv, str2bool
+from pbrain.util import conform_csv as _conform_csv
 from pbrain.util import setup_exceptionhook
 
 
@@ -27,9 +28,9 @@ def create_parser():
         dest="subparser_name", title="subcommands",
         description="valid subcommands")
 
-    cp = subparsers.add_parser('csv', help="Create cleaned csv"
+    cp = subparsers.add_parser('clean_csv', help="Create cleaned csv"
      "containing files that can be opened with nibabel")
-    c = cp.add_argument_group('csv arguments')
+    c = cp.add_argument_group('clean_csv arguments')
     c.add_argument(
         '--input-csv', required=True,
         help="Path to CSV of features, labels for training.")
@@ -104,6 +105,20 @@ def create_parser():
                     "the training set.",default=None)
     c2pp.add_argument('--clean-input-csv',default=True,type= lambda x: str2bool(x),
                      help="Flag to check that all images in the csv can be loaded into nibabel. Write out a cleaned csv")
+    c2pp.add_argument('--output-shape',default=[256,256,256],type= int,nargs=3,
+                     help="Length of X,Y,Z dims in number of voxels")
+    c2pp.add_argument('--voxel-dims',default=[1,1,1],type= int,nargs=3,
+                     help="Length of X,Y,Z dims of voxels in mm")
+
+  # conform_csv subparser
+    c2c = subparsers.add_parser('conform_csv', help="Conform all scans in csv as required to be useful input to neural network")
+    c2c.add_argument('--input-csv', required= True, help="Filepath to csv containing scan paths.")
+    c2c.add_argument('--output-csv',required= True, help="Name out output csv filename.",default=None)
+    c2cp = c2c.add_argument_group('conform_csv arguments')
+    c2cp.add_argument('--output-shape',default=[256,256,256],type= int,nargs=3,
+                     help="Length of X,Y,Z dims in number of voxels")
+    c2cp.add_argument('--voxel-dims',default=[1,1,1],type= int,nargs=3,
+                     help="Length of X,Y,Z dims of voxels in mm")
 
 
 
@@ -144,6 +159,14 @@ def pval(params):
         reference_csv=params['reference_csv'],
         )
 
+def conform_csv(params):
+    _conform_csv(
+        input_csv=params['input_csv'],
+        output_csv=params['output_csv'],
+        output_shape=tuple(params['output_shape']),
+        voxel_dims=params['voxel_dims'],
+        )
+
 def csv_to_pvals(params):
     _csv_to_pvals(
         input_csv=params['input_csv'],
@@ -152,6 +175,8 @@ def csv_to_pvals(params):
         output_csv=params['output_csv'],
         reference_csv=params['reference_csv'],
         clean_input_csv=bool(params['clean_input_csv']),
+        output_shape=tuple(params['output_shape']),
+        voxel_dims=params['voxel_dims']
         )
 
 
@@ -178,8 +203,12 @@ def main(args=None):
     if params['subparser_name'] == 'csv_to_pvals':
         csv_to_pvals(params=params)
 
+    if params['subparser_name'] == 'conform':
+        conform_csv(params=params)
+
     if params['subparser_name'] == 'csv':
         clean_csv(params['input_csv'], params['output_csv'])
+
 
 if __name__ == '__main__':
     main()

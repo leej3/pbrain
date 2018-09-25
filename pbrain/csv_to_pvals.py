@@ -18,7 +18,10 @@ import scipy as sp
 
 # from pbrain.util import zscore
 
-def csv_to_pvals(input_csv,model_dir=None,output_dir=None,output_csv=None,reference_csv=None,clean_input_csv=True):
+def csv_to_pvals(input_csv,model_dir=None,output_dir=None,output_csv=None,
+    reference_csv=None,clean_input_csv=True,output_shape=(256,256,256),
+    voxel_dims=[1,1,1]):
+
     # Set defaults
     if not output_csv:
         output_csv = input_csv
@@ -38,18 +41,18 @@ def csv_to_pvals(input_csv,model_dir=None,output_dir=None,output_csv=None,refere
     # Clean csv if required
     if clean_input_csv:
         clean_csv(input_csv, output_csv)
-        pred_in_csv = output_csv
+        conform_in_csv = output_csv
     else:
-        pred_in_csv = input_csv
+        conform_in_csv = input_csv
+
+    conform_csv(conform_in_csv,output_csv,output_shape, voxel_dims) 
+
     # Predict if required
-    test_df = pd.read_csv(pred_in_csv)
+    test_df = pd.read_csv(output_csv)
     if not 'score' in test_df.columns:
-        predict(model_dir,input_csv,output_csv,output_dir)
-        pval_in_csv = output_csv
-    else:
-        pval_in_csv = pred_in_csv
+        predict(model_dir,output_csv,output_csv,output_dir)
 
     # Compute pvalues and write to output csv
-    pval(pval_in_csv,output_csv,reference_csv=reference_csv)
+    pval(output_csv,output_csv,reference_csv=reference_csv)
 
     
