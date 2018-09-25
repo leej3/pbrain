@@ -7,6 +7,7 @@ import sys
 import tensorflow as tf
 from pathlib import Path
 import argparse
+import os
 
 # sys.excepthook = lambda exctype,exc,traceback : print("{}: {}".format(exctype.__name__,exc))
 def clean_csv(input_csv,output_csv):
@@ -116,8 +117,16 @@ def csv_to_batches(csv,batch_size):
 	batch_per_ep = len(contents) // batch_size
 	return contents, batch_per_ep, df
 
-      
 def get_loss(ae_inputs,ae_outputs,mean,log_stddev):
+    # square loss
+    recon_loss = tf.keras.backend.sum(tf.keras.backend.square(ae_outputs-ae_inputs))/2.0  
+    # kl loss
+    kl_loss =-0.5 * tf.keras.backend.sum(1 + 2.0*log_stddev - tf.keras.backend.square(mean) - tf.keras.backend.square(tf.keras.backend.exp(log_stddev)))
+    #total loss
+    loss = recon_loss + kl_loss
+    return loss, recon_loss, kl_loss
+      
+def get_loss_old(ae_inputs,ae_outputs,mean,log_stddev):
     # square loss
     recon_loss = tf.keras.backend.sum(tf.keras.backend.square(ae_outputs-ae_inputs))  
     # kl loss

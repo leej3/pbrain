@@ -51,7 +51,7 @@ def create_parser():
 
     t = tp.add_argument_group('train arguments')
     t.add_argument(
-        '--csv', required=True,
+        '--input-csv', required=True,
         help="Path to CSV of features, labels for training.")
     t.add_argument(
         '-o', '--optimizer', required=False,
@@ -123,7 +123,7 @@ def parse_args(args):
 def train(params):
     _train(
         model_dir=params['model_dir'],
-        csv=params['csv'],
+        input_csv=params['input_csv'],
         batch_size=params['batch_size'],
         n_epochs=params['n_epochs'],
         multi_gpu=params['multi_gpu'],

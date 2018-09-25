@@ -17,7 +17,7 @@ def predict(model_dir,input_csv,output_csv,output_dir):
     ae_inputs = tf.placeholder(tf.float32, (None, 256, 256, 256, 1))  # input to the network (MNIST images)
     ae_outputs, mean, log_stddev = autoencoder(ae_inputs)  # create the Autoencoder network
 
-    loss = get_loss(ae_inputs,ae_outputs,mean,log_stddev)
+    loss, recon_loss, kl_loss = get_loss(ae_inputs,ae_outputs,mean,log_stddev)
 
     # predict_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(loss)
 
@@ -37,8 +37,10 @@ def predict(model_dir,input_csv,output_csv,output_dir):
             batch_img =  z_img[...,None]
             batch_img = np.asarray( [batch_img])
             
-            recon_img, output_loss = sess.run([ae_outputs,loss], feed_dict={ae_inputs: batch_img})
+            recon_img, output_loss, r_loss, k_loss = sess.run([ae_outputs,loss,recon_loss,kl_loss], feed_dict={ae_inputs: batch_img})
             df.loc[df[df.columns[0]] == orig_path,'score'] = repr(output_loss)
+            df.loc[df[df.columns[0]] == orig_path,'recon-score'] = repr(r_loss)
+            df.loc[df[df.columns[0]] == orig_path,'kl-score'] = repr(k_loss)
             if output_dir:
                 print_img = recon_img.reshape( (256,256,256))
                 nibImg = nib.spatialimages.SpatialImage(

@@ -14,13 +14,13 @@ from pbrain.util import get_batch,get_loss,csv_to_batches
 
 
 
-def train(model_dir,csv,batch_size,n_epochs,multi_gpu):
+def train(model_dir,input_csv,batch_size,n_epochs,multi_gpu):
     lr = 0.0001
-    contents, batch_per_ep, _ = csv_to_batches(csv, batch_size)
+    contents, batch_per_ep, _ = csv_to_batches(input_csv, batch_size)
     ae_inputs = tf.placeholder(tf.float32, (None, 256, 256, 256, 1))  # input to the network (MNIST images)
     ae_outputs, mean, log_stddev = autoencoder(ae_inputs)  # create the Autoencoder network
 
-    loss = get_loss(ae_inputs,ae_outputs,mean,log_stddev)
+    loss, recon_loss, kl_loss = get_loss(ae_inputs,ae_outputs,mean,log_stddev)
 
     train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(loss)
 
