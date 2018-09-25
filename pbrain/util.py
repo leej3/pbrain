@@ -84,7 +84,7 @@ def check_nibload(input_path):
         nib.load(input_path).get_data()
     except Exception as e:
         print(e)
-        print("Failure: ", input_path)
+        print("Failure, could not read this file: ", input_path)
         return False
     return True
 
