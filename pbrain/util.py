@@ -8,6 +8,10 @@ import tensorflow as tf
 from pathlib import Path
 import argparse
 import os
+from nilearn import image, plotting, datasets
+
+from nibabel import processing
+
 
 # sys.excepthook = lambda exctype,exc,traceback : print("{}: {}".format(exctype.__name__,exc))
 def clean_csv(input_csv,output_csv):
@@ -134,3 +138,57 @@ def get_loss_old(ae_inputs,ae_outputs,mean,log_stddev):
     #total loss
     loss = kl_loss + recon_loss
     return loss
+
+
+def conform_scan(scan_path=None,img=None,d=256,voxel_dims=[1,1,1],
+    outpath=None,plot=False):
+    """
+    Imitation of mri_convert from freesurfer. Consists of minimal processing
+    for pipelines involving neural networks. The default output is an image
+    that is resampled to 256 voxels in each dimension with a voxel size of 1mm
+    cubed. The last column of the image affine is scaled according to the
+    scaling factor of the resampling.
+
+    Parameters
+    ----------
+    scan_path : str
+        Path to scan that can be loaded by nilearn
+    img : nibabel.nifti1.Nifti1Image
+        An alternative to providing scan_path. 
+    d : int
+        number of voxels in each dimension.
+    voxel_dims : list
+        Length in mm for x,y, and z dimensions of each voxel.
+    outpath : str
+        If provided, a resampled image will be written to this location
+    plot : bool
+        If True the input and output image will be plotted.
+
+    Returns
+    -------
+    resampled_img : nibabel.nifti1.Nifti1Image
+        The resampled image.
+    """
+    if not (scan_path or img):
+        raise ValueError('Must provide a scan_path or an image, eg. a nibabel.nifti1.Nifti1Image')
+    if not img:
+        img = image.load_img(scan_path)
+
+    # Resample for a voxel size of voxel_dims
+    resampled_nib = nibabel.processing.resample_to_output(img,voxel_sizes=voxel_dims)
+    # use resample_img to resize to output dimensions defined by user
+    out_shape = (d, d, d)
+    target_affine = img.affine.copy()
+    target_affine[:3,3] = target_affine[:3,3] * out_shape / img.shape
+    resampled_img = image.resample_img(resampled_nib,target_shape=out_shape, target_affine= target_affine)
+
+    if plot:
+        from matplotlib import pyplot as plt
+        plotting.plot_anat(img)
+        plotting.plot_anat(resampled_img)
+    if outpath:
+        nibabel.loadsave.save(resampled_img, outpath)
+    return resampled_img
+
+
+
