@@ -51,7 +51,7 @@ def conform_csv(input_csv, output_csv, output_shape, voxel_dims):
         img = nib.load(scan_path)
         # Check image requires conformation
         if (img.shape != output_shape) or (img.header.get_zooms() != voxel_dims):
-            conformed = conform_scan(img=img,
+            conformed = conform_image(img=img,
                                      output_shape=output_shape,
                                      voxel_dims=voxel_dims)
             conformed.header.set_zooms((voxel_dims))
@@ -127,7 +127,7 @@ def setup_exceptionhook():
 def get_image(image_path, image_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
     orig_img = nib.load(image_path)
     if orig_img.shape != image_shape:
-        conform_scan(img=orig_img, image_shape=image_shape)
+        conform_image(img=orig_img, image_shape=image_shape)
     z_img = zscore(orig_img.get_data())
     return z_img, orig_img
 
