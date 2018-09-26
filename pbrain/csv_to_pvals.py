@@ -7,7 +7,7 @@ from pbrain.models.vae3d import autoencoder
 from pbrain.predict import predict
 from pbrain.pval import pval
 from pbrain.train import train
-from pbrain.util import get_loss,csv_to_batches, get_image, clean_csv, check_path_is_writable
+from pbrain.util import get_loss,csv_to_batches, get_image, clean_csv, check_path_is_writable, conform_csv
 import pbrain
 from pathlib import Path
 
