@@ -42,6 +42,8 @@ def predict(model_dir,input_csv,output_csv,output_dir):
             df.loc[df[df.columns[0]] == orig_path,'recon-score'] = repr(r_loss)
             df.loc[df[df.columns[0]] == orig_path,'kl-score'] = repr(k_loss)
             if output_dir:
+                if not Path(output_dir).exists():
+                    Path(output_dir).mkdir()
                 print_img = recon_img.reshape( (256,256,256))
                 nibImg = nib.spatialimages.SpatialImage(
                 dataobj=print_img, affine=orig_img.affine, header=orig_img.header, extra=orig_img.extra)
