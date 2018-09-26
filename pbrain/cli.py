@@ -203,10 +203,10 @@ def main(args=None):
     if params['subparser_name'] == 'csv_to_pvals':
         csv_to_pvals(params=params)
 
-    if params['subparser_name'] == 'conform':
+    if params['subparser_name'] == 'conform_csv':
         conform_csv(params=params)
 
-    if params['subparser_name'] == 'csv':
+    if params['subparser_name'] == 'clean_csv':
         clean_csv(params['input_csv'], params['output_csv'])
 
 
