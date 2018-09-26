@@ -19,7 +19,7 @@ def clean_csv(input_csv, output_csv):
     df = pd.read_csv(input_csv)
     df['loads'] = df[df.columns[0]].apply(check_nibload)
     (df.query('loads').
-        drop('loads', inplace=False).
+        drop('loads', inplace=False,axis = 1).
         to_csv(output_csv, index=False, sep=',')
      )
 
