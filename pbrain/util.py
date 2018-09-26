@@ -213,7 +213,7 @@ def conform_image(img, output_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
         The resampled image.
     """
     # Resample for a voxel size of voxel_dims
-    resampled_nib = nibabel.processing.resample_to_output(
+    resampled_nib = nib.processing.resample_to_output(
         img, voxel_sizes=voxel_dims)
     # use resample_img to resize to output dimensions defined by user
     target_affine = img.affine.copy()
