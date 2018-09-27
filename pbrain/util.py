@@ -16,12 +16,15 @@ from nibabel import processing
 
 
 def clean_csv(input_csv, output_csv):
+    print('Cleaning csv file of images that cannot be loaded by nibabel')
     df = pd.read_csv(input_csv)
     df['loads'] = df[df.columns[0]].apply(check_nibload)
     (df.query('loads').
         drop('loads', inplace=False,axis = 1).
         to_csv(output_csv, index=False, sep=',')
      )
+    not_used = ' '.join(df.query("~loads")[df.columns[0]])
+    print(f"Not using {not_used}")
 
 
 def conform_csv(input_csv, output_csv, output_shape, voxel_dims):
@@ -44,6 +47,7 @@ def conform_csv(input_csv, output_csv, output_shape, voxel_dims):
     voxel_dims : list of ints
         X,Y, and Z dimensions of the voxels of the output image.
     """
+    print(f"Resampling scans to voxel_dims of {voxel_dims} and shape of {output_shape}")
     df = pd.read_csv(input_csv)
     out_scan_paths = []
     scan_col = 0

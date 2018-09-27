@@ -10,6 +10,7 @@ from pathlib import Path
 
 
 def predict(model_dir,input_csv,output_csv,output_dir):
+    print("Running prediction...")
     contents, batch_per_ep, df = csv_to_batches(input_csv, batch_size=1)
 
     # lr = 0.0001        # Learning rate
