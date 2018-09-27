@@ -92,7 +92,10 @@ def check_nibload(input_path):
 def zscore(a):
     """Return array of z-scored values."""
     a = np.asarray(a)
-    return (a - a.mean()) / a.std()
+    std = a.std()
+    if std == 0:
+        std = 10**-7
+    return (a - a.mean()) / std
 
 
 def run_cmd(cmd):
