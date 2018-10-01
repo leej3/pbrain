@@ -36,6 +36,7 @@ def pval(input_csv,output_csv,reference_csv=None):
     # Compute lower tails on test data using KDE with Gaussian kernel
     diffs = np.dot(test_scores.reshape((-1,1)), np.ones((1, len(scores)))) - np.dot(np.ones((len(test_scores), 1)), scores.reshape((1,-1))) # a n_test x n_train matrix of differences between test and training points
     pvals = 1 - np.mean(norm.cdf(diffs, loc = 0, scale = bd), 1) # the p-values obtained by averaging lower tails of all training points for each test point
+    pvals = 2 * np.minimum(pvals, 1-pvals) # two-sided pvalue
     test_df['pval'] = pvals
     print(f"Writing csv... {output_csv}")
     test_df.to_csv(output_csv,index = False)
