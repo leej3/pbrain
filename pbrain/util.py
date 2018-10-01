@@ -201,8 +201,7 @@ def conform_image(img, target_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
     Imitation of mri_convert from freesurfer. Consists of minimal processing
     for pipelines involving neural networks. The default output is an image
     that is resampled to 256 voxels in each dimension with a voxel size of 1mm
-    cubed. The last column of the image affine is scaled according to the
-    scaling factor of the resampling.
+    cubed.
 
     Parameters
     ----------
@@ -218,12 +217,25 @@ def conform_image(img, target_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
     resampled_img : nibabel.nifti1.Nifti1Image
         The resampled image.
     """
-    # Resample for a voxel size of voxel_dims
-    resampled_nib = nib.processing.resample_to_output(
-        img, voxel_sizes=voxel_dims)
-    # use resample_img to resize to output dimensions defined by user
-    target_affine = img.affine.copy()
-    target_affine[:3, 3] = target_affine[:3, 3] * output_shape / img.shape
-    resampled_img = image.resample_img(
-        resampled_nib, target_shape=output_shape, target_affine=target_affine)
+    
+    # Calculate the translation part of the affine
+    spatial_dimensions = (img.header['dim'] * img.header['pixdim'])[1:4]
+    image_center_as_prop = img.affine[0:3,3] / spatial_dimensions
+    dimensions_of_target_image = (np.array(voxel_dims) * np.array(target_shape))
+    target_center_coords =  dimensions_of_target_image * image_center_as_prop 
+    
+    # Make sure that the signs of the affine's diagonal are maintained:
+    voxel_dims = voxel_dims * np.sign(np.diagonal(img.affine)[:3])
+
+    # Initialize an affine transform
+    target_affine = np.eye(4)
+    # Set the target image voxel dimensions
+    target_affine[np.diag_indices_from(target_affine)]  = [*voxel_dims,1]
+
+    # Set the translation component of the affine computed from the input
+    # image affine.
+    target_affine[:3,3] = target_center_coords
+
+    resampled_img = image.resample_img(img, target_affine=target_affine,target_shape=target_shape)
+    resampled_img.header.set_zooms((np.absolute(voxel_dims)))
     return resampled_img
