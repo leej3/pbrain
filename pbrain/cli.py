@@ -105,7 +105,7 @@ def create_parser():
                     "the training set.",default=None)
     c2pp.add_argument('--clean-input-csv',default=True,type= lambda x: str2bool(x),
                      help="Flag to check that all images in the csv can be loaded into nibabel. Write out a cleaned csv")
-    c2pp.add_argument('--output-shape',default=[256,256,256],type= int,nargs=3,
+    c2pp.add_argument('--target-shape',default=[256,256,256],type= int,nargs=3,
                      help="Length of X,Y,Z dims in number of voxels")
     c2pp.add_argument('--voxel-dims',default=[1,1,1],type= int,nargs=3,
                      help="Length of X,Y,Z dims of voxels in mm")
