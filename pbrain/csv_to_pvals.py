@@ -19,7 +19,7 @@ import scipy as sp
 # from pbrain.util import zscore
 
 def csv_to_pvals(input_csv,model_dir=None,output_dir=None,output_csv=None,
-    reference_csv=None,clean_input_csv=True,output_shape=(256,256,256),
+    reference_csv=None,clean_input_csv=True,target_shape=(256,256,256),
     voxel_dims=[1,1,1]):
 
     # Set defaults
@@ -45,7 +45,7 @@ def csv_to_pvals(input_csv,model_dir=None,output_dir=None,output_csv=None,
     else:
         conform_in_csv = input_csv
 
-    conform_csv(conform_in_csv,output_csv,output_shape, voxel_dims) 
+    conform_csv(conform_in_csv,output_csv,target_shape, voxel_dims) 
 
     # Predict if required
     test_df = pd.read_csv(output_csv)

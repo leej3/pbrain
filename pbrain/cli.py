@@ -163,7 +163,7 @@ def conform_csv(params):
     _conform_csv(
         input_csv=params['input_csv'],
         output_csv=params['output_csv'],
-        output_shape=tuple(params['output_shape']),
+        target_shape=tuple(params['target_shape']),
         voxel_dims=params['voxel_dims'],
         )
 
@@ -175,7 +175,7 @@ def csv_to_pvals(params):
         output_csv=params['output_csv'],
         reference_csv=params['reference_csv'],
         clean_input_csv=bool(params['clean_input_csv']),
-        output_shape=tuple(params['output_shape']),
+        target_shape=tuple(params['target_shape']),
         voxel_dims=params['voxel_dims']
         )
 

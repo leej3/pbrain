@@ -27,7 +27,7 @@ def clean_csv(input_csv, output_csv):
     print(f"Not using {not_used}")
 
 
-def conform_csv(input_csv, output_csv, output_shape, voxel_dims):
+def conform_csv(input_csv, output_csv, target_shape, voxel_dims):
     """
     With an input csv of scans, returns a csv of paths to scans that have been
     conformed as described by mri_convert in freesurfer. Briefly, returns a
@@ -41,24 +41,23 @@ def conform_csv(input_csv, output_csv, output_shape, voxel_dims):
         for the neural network that have been conformed to cubic images with
         isotropic voxel dimensions.
 
-    output_shape : tuple of ints
+    target_shape : tuple of ints
         X,Y, and Z dimensions of the output image.
 
     voxel_dims : list of ints
         X,Y, and Z dimensions of the voxels of the output image.
     """
-    print(f"Resampling scans to voxel_dims of {voxel_dims} and shape of {output_shape}")
+    print(f"Resampling scans to voxel_dims of {voxel_dims} and shape of {target_shape}")
     df = pd.read_csv(input_csv)
     out_scan_paths = []
     scan_col = 0
     for ii, scan_path in enumerate(df.iloc[:, scan_col]):
         img = nib.load(scan_path)
         # Check image requires conformation
-        if (img.shape != output_shape) or (img.header.get_zooms() != voxel_dims):
+        if (img.shape != target_shape) or (img.header.get_zooms() != voxel_dims):
             conformed = conform_image(img=img,
-                                     output_shape=output_shape,
+                                     target_shape=target_shape,
                                      voxel_dims=voxel_dims)
-            conformed.header.set_zooms((voxel_dims))
             # Write image to disk
             suffix_string = '_conformed' + ''.join(Path(scan_path).suffixes)
             conformed_path = (scan_path.split('.')[0] + suffix_string)
@@ -197,7 +196,7 @@ def get_loss_old(ae_inputs, ae_outputs, mean, log_stddev):
     return loss
 
 
-def conform_image(img, output_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
+def conform_image(img, target_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
     """
     Imitation of mri_convert from freesurfer. Consists of minimal processing
     for pipelines involving neural networks. The default output is an image
@@ -209,7 +208,7 @@ def conform_image(img, output_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
     ----------
     img : nibabel.nifti1.Nifti1Image
         An alternative to providing scan_path. 
-    output_shape : tuple of 3 ints
+    target_shape : tuple of 3 ints
         number of voxels in each dimension.
     voxel_dims : list
         Length in mm for x,y, and z dimensions of each voxel.
