@@ -54,7 +54,8 @@ def conform_csv(input_csv, output_csv, target_shape, voxel_dims):
     for ii, scan_path in enumerate(df.iloc[:, scan_col]):
         img = nib.load(scan_path)
         # Check image requires conformation
-        if (img.shape != target_shape) or (img.header.get_zooms() != voxel_dims):
+        
+        if (img.shape != target_shape) or not np.isclose(np.array(img.header.get_zooms()),np.array(voxel_dims)).all():
             conformed = conform_image(img=img,
                                      target_shape=target_shape,
                                      voxel_dims=voxel_dims)
@@ -196,7 +197,7 @@ def get_loss_old(ae_inputs, ae_outputs, mean, log_stddev):
     return loss
 
 
-def conform_image(img, target_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
+def conform_image(img, target_shape=(256, 256, 256), voxel_dims=[1.0, 1.0, 1.0]):
     """
     Imitation of mri_convert from freesurfer. Consists of minimal processing
     for pipelines involving neural networks. The default output is an image
@@ -229,13 +230,15 @@ def conform_image(img, target_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
 
     # Initialize an affine transform
     target_affine = np.eye(4)
+    
     # Set the target image voxel dimensions
     target_affine[np.diag_indices_from(target_affine)]  = [*voxel_dims,1]
-
+    
     # Set the translation component of the affine computed from the input
+    
     # image affine.
     target_affine[:3,3] = target_center_coords
-
+    
     resampled_img = image.resample_img(img, target_affine=target_affine,target_shape=target_shape)
     resampled_img.header.set_zooms((np.absolute(voxel_dims)))
     return resampled_img

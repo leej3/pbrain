@@ -20,7 +20,7 @@ import scipy as sp
 
 def csv_to_pvals(input_csv,model_dir=None,output_dir=None,output_csv=None,
     reference_csv=None,clean_input_csv=True,target_shape=(256,256,256),
-    voxel_dims=[1,1,1]):
+    voxel_dims=(1.0,1.0,1.0)):
 
     # Set defaults
     if not output_csv:

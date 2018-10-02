@@ -107,7 +107,7 @@ def create_parser():
                      help="Flag to check that all images in the csv can be loaded into nibabel. Write out a cleaned csv")
     c2pp.add_argument('--target-shape',default=[256,256,256],type= int,nargs=3,
                      help="Length of X,Y,Z dims in number of voxels")
-    c2pp.add_argument('--voxel-dims',default=[1,1,1],type= int,nargs=3,
+    c2pp.add_argument('--voxel-dims',default=[1.0,1.0,1.0],type= float,nargs=3,
                      help="Length of X,Y,Z dims of voxels in mm")
 
   # conform_csv subparser
@@ -117,7 +117,7 @@ def create_parser():
     c2cp = c2c.add_argument_group('conform_csv arguments')
     c2cp.add_argument('--output-shape',default=[256,256,256],type= int,nargs=3,
                      help="Length of X,Y,Z dims in number of voxels")
-    c2cp.add_argument('--voxel-dims',default=[1,1,1],type= int,nargs=3,
+    c2cp.add_argument('--voxel-dims',default=[1.0,1.0,1.0],type=float,nargs=3,
                      help="Length of X,Y,Z dims of voxels in mm")
 
 
