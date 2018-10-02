@@ -4,11 +4,10 @@ import nibabel as nib
 import tensorflow as tf
 import numpy as np
 import time
-from pbrain.volume import zscore
 import pandas as pd
 from pathlib import Path
 from pbrain.models.vae3d import autoencoder
-from pbrain.util import get_batch,get_loss,csv_to_batches
+from pbrain.util import get_batch,get_loss,csv_to_batches,zscore
 # from pbrain.util import zscore
 
 
