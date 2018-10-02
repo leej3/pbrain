@@ -54,7 +54,6 @@ def conform_csv(input_csv, output_csv, target_shape, voxel_dims):
     for ii, scan_path in enumerate(df.iloc[:, scan_col]):
         img = nib.load(scan_path)
         # Check image requires conformation
-        
         if (img.shape != target_shape) or not np.isclose(np.array(img.header.get_zooms()),np.array(voxel_dims)).all():
             conformed = conform_image(img=img,
                                      target_shape=target_shape,
@@ -197,6 +196,49 @@ def get_loss_old(ae_inputs, ae_outputs, mean, log_stddev):
     return loss
 
 
+def rescale_affine(input_affine, voxel_dims=[1, 1, 1], target_center_coords= None):
+    """
+    This function uses a generic approach to rescaling an affine to arbitrary
+    voxel dimensions. It allows for affines with off-diagonal elements by
+    decomposing the affine matrix into u,s,v (or rather the numpy equivalents)
+    and applying the scaling to the scaling matrix (s).
+
+    Parameters
+    ----------
+    input_affine : np.array of shape 4,4
+        Result of nibabel.nifti1.Nifti1Image.affine
+    voxel_dims : list
+        Length in mm for x,y, and z dimensions of each voxel.
+    target_center_coords: list of float
+        3 numbers to specify the translation part of the affine if not using the same as the input_affine.
+
+    Returns
+    -------
+    target_affine : 4x4matrix
+        The resampled image.
+    """
+    # Initialize target_affine
+    target_affine = input_affine.copy()
+    # Decompose the image affine to allow scaling
+    u,s,v = np.linalg.svd(target_affine[:3,:3],full_matrices=False)
+    
+    # Rescale the image to the appropriate voxel dimensions
+    s = voxel_dims
+    
+    # Reconstruct the affine
+    target_affine[:3,:3] = u @ np.diag(s) @ v
+
+    # Set the translation component of the affine computed from the input
+    # image affine if coordinates are specified by the user.
+    if target_center_coords:
+        target_affine[:3,3] = target_center_coords
+    return target_affine
+
+
+def test_rescale_affine():
+    input_img = datasets.load_mni152_template()
+
+
 def conform_image(img, target_shape=(256, 256, 256), voxel_dims=[1.0, 1.0, 1.0]):
     """
     Imitation of mri_convert from freesurfer. Consists of minimal processing
@@ -218,27 +260,24 @@ def conform_image(img, target_shape=(256, 256, 256), voxel_dims=[1.0, 1.0, 1.0])
     resampled_img : nibabel.nifti1.Nifti1Image
         The resampled image.
     """
+    if not img['sform_code'] >0:
+        raise ValueError("The image header must contain a valid sform affine.")
+    # initialize the affine of the output image
+    target_affine = img.affine.copy()
     
     # Calculate the translation part of the affine
     spatial_dimensions = (img.header['dim'] * img.header['pixdim'])[1:4]
+    
+    # Calculate the translation affine as a proportion of the real world
+    # spatial dimensions
     image_center_as_prop = img.affine[0:3,3] / spatial_dimensions
+    
+    # Calculate the equivalent center coordinates in the target image
     dimensions_of_target_image = (np.array(voxel_dims) * np.array(target_shape))
     target_center_coords =  dimensions_of_target_image * image_center_as_prop 
-    
-    # Make sure that the signs of the affine's diagonal are maintained:
-    voxel_dims = voxel_dims * np.sign(np.diagonal(img.affine)[:3])
 
-    # Initialize an affine transform
-    target_affine = np.eye(4)
-    
-    # Set the target image voxel dimensions
-    target_affine[np.diag_indices_from(target_affine)]  = [*voxel_dims,1]
-    
-    # Set the translation component of the affine computed from the input
-    
-    # image affine.
-    target_affine[:3,3] = target_center_coords
-    
+    target_affine = rescale_affine(img,voxel_dims,target_center_coords)
+    # Resample the image
     resampled_img = image.resample_img(img, target_affine=target_affine,target_shape=target_shape)
     resampled_img.header.set_zooms((np.absolute(voxel_dims)))
     return resampled_img
