@@ -218,7 +218,7 @@ def rescale_affine(input_affine, voxel_dims=[1, 1, 1], target_center_coords= Non
         The resampled image.
     """
     # Initialize target_affine
-    target_affine = input_affine.copy()
+    target_affine = input_affine
     # Decompose the image affine to allow scaling
     u,s,v = np.linalg.svd(target_affine[:3,:3],full_matrices=False)
     
@@ -230,7 +230,7 @@ def rescale_affine(input_affine, voxel_dims=[1, 1, 1], target_center_coords= Non
 
     # Set the translation component of the affine computed from the input
     # image affine if coordinates are specified by the user.
-    if target_center_coords:
+    if target_center_coords is not None:
         target_affine[:3,3] = target_center_coords
     return target_affine
 
@@ -260,7 +260,7 @@ def conform_image(img, target_shape=(256, 256, 256), voxel_dims=[1.0, 1.0, 1.0])
     resampled_img : nibabel.nifti1.Nifti1Image
         The resampled image.
     """
-    if not img['sform_code'] >0:
+    if not img.header['sform_code'] >0:
         raise ValueError("The image header must contain a valid sform affine.")
     # initialize the affine of the output image
     target_affine = img.affine.copy()
@@ -276,7 +276,7 @@ def conform_image(img, target_shape=(256, 256, 256), voxel_dims=[1.0, 1.0, 1.0])
     dimensions_of_target_image = (np.array(voxel_dims) * np.array(target_shape))
     target_center_coords =  dimensions_of_target_image * image_center_as_prop 
 
-    target_affine = rescale_affine(img,voxel_dims,target_center_coords)
+    target_affine = rescale_affine(target_affine,voxel_dims,target_center_coords)
     # Resample the image
     resampled_img = image.resample_img(img, target_affine=target_affine,target_shape=target_shape)
     resampled_img.header.set_zooms((np.absolute(voxel_dims)))
