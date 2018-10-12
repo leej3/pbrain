@@ -138,7 +138,7 @@ def get_image(image_path, image_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
     return z_img, orig_img
 
 
-def get_batch(content, i, batch_size):
+def get_batch(batch):
     # This method returns a batch and its labels.
 
     # input:
@@ -149,8 +149,8 @@ def get_batch(content, i, batch_size):
     #   imgs: 5D numpy array of image btaches. Specifically, it takes the shape of (batch_size, 256, 256, 256, 1)
     #   arrName: list of string addresses that are labels for imgs.
     arr = []
-    for j in range(i, i + batch_size):
-        z_img, _ = get_image(content[j])
+    for path in batch:
+        z_img, _ = get_image(path)
         arr.append(z_img)
     imgs = np.array(arr)
     imgs = imgs[..., None]
@@ -162,10 +162,7 @@ def csv_to_batches(csv, batch_size):
 
     df['exists'] = df[df.columns[0]].apply(lambda x: Path(x).exists())
     df = df.query('exists')
-    contents = df[df.columns[0]].sample(frac=1)
-
-    # make the image list a multiple of batch_size
-    contents = contents[0: len(contents) // (batch_size) * batch_size]
+    contents = list(df[df.columns[0]])
 
     # calculate the number of batches per epoch
     batch_per_ep = len(contents) // batch_size
@@ -175,7 +172,10 @@ def csv_to_batches(csv, batch_size):
 def get_loss(ae_inputs, ae_outputs, mean, log_stddev):
     # square loss
     recon_loss = tf.keras.backend.sum(
-        tf.keras.backend.square(ae_outputs - ae_inputs)) / 2.0
+        tf.keras.backend.square(ae_outputs - ae_inputs)) / (2.0*(0.1))
+    # abs loss
+    #recon_loss = tf.keras.backend.sum(
+        #tf.keras.backend.abs(ae_outputs - ae_inputs)) / 2.0**(-0.5)
     # kl loss
     kl_loss = -0.5 * tf.keras.backend.sum(1 + 2.0 * log_stddev - tf.keras.backend.square(
         mean) - tf.keras.backend.square(tf.keras.backend.exp(log_stddev)))

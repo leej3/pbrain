@@ -8,14 +8,15 @@ import pandas as pd
 from pathlib import Path
 from pbrain.models.vae3d import autoencoder
 from pbrain.util import get_batch,get_loss,csv_to_batches,zscore
+from random import shuffle
 # from pbrain.util import zscore
-
 
 
 
 def train(model_dir,input_csv,batch_size,n_epochs,multi_gpu):
     lr = 0.0001
     contents, batch_per_ep, _ = csv_to_batches(input_csv, batch_size)
+
     ae_inputs = tf.placeholder(tf.float32, (None, 256, 256, 256, 1))  # input to the network (MNIST images)
     ae_outputs, mean, log_stddev = autoencoder(ae_inputs)  # create the Autoencoder network
 
@@ -32,6 +33,7 @@ def train(model_dir,input_csv,batch_size,n_epochs,multi_gpu):
         sess.run(init)
         for ep in range(n_epochs):  # epochs loop
             time2 = time.time()
+            contents = 
             i = 0
             for batch_n in range(batch_per_ep):  # batches loop
                 time1 = time.time()
@@ -40,8 +42,6 @@ def train(model_dir,input_csv,batch_size,n_epochs,multi_gpu):
                 # save model for every 10 samples. 
                 if not i%10:
                     save_path = saver.save(sess, model_dir + "/model.ckpt")
-
-                print(contents[i:i+batch_size])
 
                 i = i + batch_size
                 _, c = sess.run([train_op, recon_loss], feed_dict={ae_inputs: batch_img})

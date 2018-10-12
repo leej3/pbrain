@@ -65,7 +65,7 @@ def create_parser():
         help="Number of samples per batch. If `--multi-gpu` is specified,"
              " batch is split across available GPUs.")
     t.add_argument(
-        '-e', '--n-epochs', type=int, default=10,
+        '-e', '--n-epochs', type=int, default=5,
         help="Number of training epochs")
     t.add_argument(
         '--multi-gpu', action='store_true',
