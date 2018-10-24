@@ -11,6 +11,7 @@ import os
 from nilearn import image, datasets
 
 from nibabel import processing
+import nibabel.spatialimages.HeaderDataError
 
 # sys.excepthook = lambda exctype,exc,traceback : print("{}: {}".format(exctype.__name__,exc))
 
@@ -55,9 +56,23 @@ def conform_csv(input_csv, output_csv, target_shape, voxel_dims):
         img = nib.load(scan_path)
         # Check image requires conformation
         if (img.shape != target_shape) or not np.isclose(np.array(img.header.get_zooms()),np.array(voxel_dims)).all():
-            conformed = conform_image(img=img,
-                                     target_shape=target_shape,
-                                     voxel_dims=voxel_dims)
+            try:
+                conformed = conform_image(
+                    img=img,
+                    target_shape=target_shape,
+                    voxel_dims=voxel_dims)
+            # except nibabel.spatialimages.HeaderDataError:
+            except:
+                print("Error: Not including {scan_path}")
+                df.drop([ii])
+                nib.save(conformed, conformed_path)
+                continue
+                
+                
+
+
+
+
             # Write image to disk
             suffix_string = '_conformed' + ''.join(Path(scan_path).suffixes)
             conformed_path = (scan_path.split('.')[0] + suffix_string)
