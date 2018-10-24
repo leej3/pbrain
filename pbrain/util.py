@@ -67,11 +67,6 @@ def conform_csv(input_csv, output_csv, target_shape, voxel_dims):
                 df.drop([ii])
                 nib.save(conformed, conformed_path)
                 continue
-                
-                
-
-
-
 
             # Write image to disk
             suffix_string = '_conformed' + ''.join(Path(scan_path).suffixes)
