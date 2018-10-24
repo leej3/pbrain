@@ -91,8 +91,17 @@ def check_nibload(input_path):
         return False
     return True
 
-
 def zscore(a):
+    """Return array of z-scored values."""
+    a = np.asarray(a)
+    mean = 17.43
+    std = 40.87
+    if std == 0:
+        std = 10**-7
+    return (a - mean) / std
+
+
+def zscore_old(a):
     """Return array of z-scored values."""
     a = np.asarray(a)
     std = a.std()
@@ -133,7 +142,7 @@ def setup_exceptionhook():
 def get_image(image_path, image_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
     orig_img = nib.load(image_path)
     if orig_img.shape != image_shape:
-        conform_image(img=orig_img, image_shape=image_shape)
+        conform_image(img=orig_img, target_shape=image_shape)
     z_img = zscore(orig_img.get_data())
     return z_img, orig_img
 
@@ -142,12 +151,11 @@ def get_batch(batch):
     # This method returns a batch and its labels.
 
     # input:
-    #   content: list of string address of original images.
-    #   i : location to extract the batches from.
+    #   batch: list of string address of original images.
 
     # output:
     #   imgs: 5D numpy array of image btaches. Specifically, it takes the shape of (batch_size, 256, 256, 256, 1)
-    #   arrName: list of string addresses that are labels for imgs.
+    
     arr = []
     for path in batch:
         z_img, _ = get_image(path)
@@ -168,17 +176,32 @@ def csv_to_batches(csv, batch_size):
     batch_per_ep = len(contents) // batch_size
     return contents, batch_per_ep, df
 
-
-def get_loss(ae_inputs, ae_outputs, mean, log_stddev):
+def get_loss_0(ae_inputs, ae_outputs, mean, log_stddev):
     # square loss
     recon_loss = tf.keras.backend.sum(
-        tf.keras.backend.square(ae_outputs - ae_inputs)) / (2.0*(0.1))
+        tf.keras.backend.square(ae_outputs - ae_inputs)) / 2.0
     # abs loss
     #recon_loss = tf.keras.backend.sum(
         #tf.keras.backend.abs(ae_outputs - ae_inputs)) / 2.0**(-0.5)
     # kl loss
-    kl_loss = -0.5 * tf.keras.backend.sum(1 + 2.0 * log_stddev - tf.keras.backend.square(
+    kl_loss = -0.5 * tf.keras.backend.sum(1 + log_stddev - tf.keras.backend.square(
         mean) - tf.keras.backend.square(tf.keras.backend.exp(log_stddev)))
+    # total loss
+    loss = recon_loss + kl_loss
+    return loss, recon_loss, kl_loss
+
+def get_loss(ae_inputs, ae_outputs, mean, log_stddev):
+    # square loss
+    recon_loss = tf.keras.backend.sum(
+        tf.keras.backend.square(ae_outputs - ae_inputs)) / 2.0
+    # abs loss
+    #recon_loss = tf.keras.backend.sum(
+        #tf.keras.backend.abs(ae_outputs - ae_inputs)) / 2.0**(-0.5)
+    # kl loss
+    prior_mean = tf.convert_to_tensor(np.load('/data/MLcore/pbrain/pbrain/prior_mean.npy'), dtype=tf.float32)
+    prior_std = tf.convert_to_tensor(np.load('/data/MLcore/pbrain/pbrain/prior_std.npy'), dtype=tf.float32)
+    kl_loss = tf.keras.backend.sum(-0.5 - log_stddev + (tf.keras.backend.square(
+        mean-prior_mean) + tf.keras.backend.square(tf.keras.backend.exp(log_stddev)))/(2.0*tf.square(prior_std)))
     # total loss
     loss = recon_loss + kl_loss
     return loss, recon_loss, kl_loss

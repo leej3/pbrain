@@ -31,7 +31,7 @@ def predict(model_dir,input_csv,output_csv,output_dir):
         sess.run(init)
         saver.restore(sess, model_dir + "/model.ckpt")
 
-        for ii,orig_path in enumerate(contents):  # batches loop
+        for ii, orig_path in enumerate(contents):  # batches loop
             z_img, orig_img = get_image(orig_path)
 
             # change shape from 256 x 256 x 256 to (1, 256, 256, 256, 1)

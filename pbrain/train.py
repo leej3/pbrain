@@ -33,11 +33,12 @@ def train(model_dir,input_csv,batch_size,n_epochs,multi_gpu):
         sess.run(init)
         for ep in range(n_epochs):  # epochs loop
             time2 = time.time()
-            contents = 
+            shuffle(contents)
+            batches = [contents[i:i + batch_size] for i in range(0, len(contents), batch_size) if batch_size == len(contents[i:i + batch_size])]
             i = 0
-            for batch_n in range(batch_per_ep):  # batches loop
+            for batch in batches:  # batches loop
                 time1 = time.time()
-                batch_img = get_batch(contents, i, batch_size)
+                batch_img = get_batch(batch)
 
                 # save model for every 10 samples. 
                 if not i%10:
