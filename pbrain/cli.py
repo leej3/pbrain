@@ -103,7 +103,7 @@ def create_parser():
     c2p.add_argument('--output-csv',required= False, help="Name out output csv filename.",default=None)
     c2pp = c2p.add_argument_group('csv_to_pvals arguments')
     c2pp.add_argument(
-        '-m', '--model-dir', default=MODELS_PATH, help="Path to directory containing the model.",default=None)
+        '-m', '--model-dir', default=MODELS_PATH, help="Path to directory containing the model.")
     ###
     c2pp.add_argument('--output-dir',required= False, help="Name of output directory.",default=None)
     c2pp.add_argument('--reference-csv',required= False, help="Reference csv containing scores for "
