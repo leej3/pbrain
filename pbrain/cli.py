@@ -12,8 +12,11 @@ from pbrain.csv_to_pvals import csv_to_pvals as _csv_to_pvals
 from pbrain.util import clean_csv, str2bool
 from pbrain.util import conform_csv as _conform_csv
 from pbrain.util import setup_exceptionhook
+import pbrain
 
-
+STATS_PATH = (Path(pbrain.__file__).parent.parent / 'reference_files' / 'reference_stats')
+MODELS_PATH = (Path(pbrain.__file__).parent.parent / 'reference_files' / 'reference_models')
+CSV_PATH = (Path(pbrain.__file__).parent.parent / 'reference_files' / 'reference.csv')
 
 def create_parser():
     """Return argument parser for pbrain training interface."""
@@ -45,7 +48,7 @@ def create_parser():
 
     m = tp.add_argument_group('model arguments')
     m.add_argument(
-        '--model-dir',
+        '--model-dir', required=True,
         help="Directory in which to save model checkpoints. If an existing"
              " directory, will resume training from last checkpoint. If not"
              " specified, will use a temporary directory.")
@@ -71,7 +74,7 @@ def create_parser():
         '--multi-gpu', action='store_true',
         help="Train across all available GPUs. Batches are split across GPUs. Not yet implemented")
     t.add_argument('--stats-path',type=str,
-        help="Path to statistics files")
+        help="Path to statistics files",default=STATS_PATH)
 
     # Prediction subparser
     pp = subparsers.add_parser('predict', help="Predict using SavedModel")
@@ -79,11 +82,11 @@ def create_parser():
     pp.add_argument('--output-csv', help="Name out output csv filename.")
     ppp = pp.add_argument_group('prediction arguments')
     ppp.add_argument(
-        '-m', '--model-dir', required=True, help="Path to directory containing the model.")
+        '-m', '--model-dir', default=MODELS_PATH, help="Path to directory containing the model.")
     ###
     ppp.add_argument('--output-dir',required= False, help="Name of output directory.",default=None)
     ppp.add_argument('--stats-path',type=str,
-        help="Path to statistics files")
+        help="Path to statistics files",default=STATS_PATH)
     
     # pval subparser
     pv = subparsers.add_parser('pval', help="Get pvals for each scan in a csv.")
@@ -92,7 +95,7 @@ def create_parser():
     pvp = pv.add_argument_group('pval arguments')
     ###
     pvp.add_argument('--reference-csv',required= False, help="Reference csv containing scores for "
-        "the training set.",default=None)
+        "the training set.",default=CSV_PATH)
     
     # csv_to_pvals subparser
     c2p = subparsers.add_parser('csv_to_pvals', help="Predict using SavedModel")
@@ -100,11 +103,11 @@ def create_parser():
     c2p.add_argument('--output-csv',required= False, help="Name out output csv filename.",default=None)
     c2pp = c2p.add_argument_group('csv_to_pvals arguments')
     c2pp.add_argument(
-        '-m', '--model-dir',required= False, help="Path to directory containing the model.",default=None)
+        '-m', '--model-dir', default=MODELS_PATH, help="Path to directory containing the model.",default=None)
     ###
     c2pp.add_argument('--output-dir',required= False, help="Name of output directory.",default=None)
     c2pp.add_argument('--reference-csv',required= False, help="Reference csv containing scores for "
-                    "the training set.",default=None)
+                    "the training set.",default=CSV_PATH)
     c2pp.add_argument('--clean-input-csv',default=True,type= lambda x: str2bool(x),
                      help="Flag to check that all images in the csv can be loaded into nibabel. Write out a cleaned csv")
     c2pp.add_argument('--target-shape',default=[256,256,256],type= int,nargs=3,
@@ -112,7 +115,7 @@ def create_parser():
     c2pp.add_argument('--voxel-dims',default=[1.0,1.0,1.0],type= float,nargs=3,
                      help="Length of X,Y,Z dims of voxels in mm")
     c2pp.add_argument('--stats-path',type=str,
-                     help="Path to statistics files")
+                     help="Path to statistics files",default=STATS_PATH)
 
   # conform_csv subparser
     c2c = subparsers.add_parser('conform_csv', help="Conform all scans in csv as required to be useful input to neural network")
