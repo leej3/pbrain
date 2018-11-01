@@ -9,9 +9,8 @@ from pathlib import Path
 import argparse
 import os
 from nilearn import image, datasets
-
 from nibabel import processing
-import nibabel.spatialimages.HeaderDataError
+#import nibabel.spatialimages.HeaderDataError
 
 # sys.excepthook = lambda exctype,exc,traceback : print("{}: {}".format(exctype.__name__,exc))
 
@@ -101,17 +100,18 @@ def check_nibload(input_path):
         return False
     return True
 
-def zscore(a):
+def zscore_with_stats(a,stats_path):
     """Return array of z-scored values."""
     a = np.asarray(a)
-    mean = 17.43
-    std = 40.87
+    df = pd.read_csv(stats_path + '/input_stats.csv') 
+    mean = df['mean'][0]
+    std = df['std'][0]
     if std == 0:
         std = 10**-7
     return (a - mean) / std
 
 
-def zscore_old(a):
+def zscore(a):
     """Return array of z-scored values."""
     a = np.asarray(a)
     std = a.std()
@@ -149,15 +149,18 @@ def setup_exceptionhook():
     sys.excepthook = _pdb_excepthook
 
 
-def get_image(image_path, image_shape=(256, 256, 256), voxel_dims=[1, 1, 1]):
+def get_image(image_path, image_shape=(256, 256, 256), voxel_dims=[1, 1, 1],stats_path=None):
     orig_img = nib.load(image_path)
     if orig_img.shape != image_shape:
         conform_image(img=orig_img, target_shape=image_shape)
-    z_img = zscore(orig_img.get_data())
+    if stats_path:
+        z_img = zscore_with_stats(orig_img.get_data(),stats_path)
+    else:
+        z_img = zscore(orig_img.get_data())
     return z_img, orig_img
 
 
-def get_batch(batch):
+def get_batch(batch,stats_path=None):
     # This method returns a batch and its labels.
 
     # input:
@@ -168,7 +171,7 @@ def get_batch(batch):
     
     arr = []
     for path in batch:
-        z_img, _ = get_image(path)
+        z_img, _ = get_image(path,stats_path=stats_path)
         arr.append(z_img)
     imgs = np.array(arr)
     imgs = imgs[..., None]
@@ -200,7 +203,7 @@ def get_loss_0(ae_inputs, ae_outputs, mean, log_stddev):
     loss = recon_loss + kl_loss
     return loss, recon_loss, kl_loss
 
-def get_loss(ae_inputs, ae_outputs, mean, log_stddev):
+def get_loss(ae_inputs, ae_outputs, mean, log_stddev, stats_path):
     # square loss
     recon_loss = tf.keras.backend.sum(
         tf.keras.backend.square(ae_outputs - ae_inputs)) / 2.0
@@ -208,8 +211,8 @@ def get_loss(ae_inputs, ae_outputs, mean, log_stddev):
     #recon_loss = tf.keras.backend.sum(
         #tf.keras.backend.abs(ae_outputs - ae_inputs)) / 2.0**(-0.5)
     # kl loss
-    prior_mean = tf.convert_to_tensor(np.load('/data/MLcore/pbrain/pbrain/prior_mean.npy'), dtype=tf.float32)
-    prior_std = tf.convert_to_tensor(np.load('/data/MLcore/pbrain/pbrain/prior_std.npy'), dtype=tf.float32)
+    prior_mean = tf.convert_to_tensor(np.load(stats_path + '/prior_mean.npy'), dtype=tf.float32)
+    prior_std = tf.convert_to_tensor(np.load(stats_path + '/prior_std.npy'), dtype=tf.float32)
     kl_loss = tf.keras.backend.sum(-0.5 - log_stddev + (tf.keras.backend.square(
         mean-prior_mean) + tf.keras.backend.square(tf.keras.backend.exp(log_stddev)))/(2.0*tf.square(prior_std)))
     # total loss

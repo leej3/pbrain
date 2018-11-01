@@ -70,7 +70,8 @@ def create_parser():
     t.add_argument(
         '--multi-gpu', action='store_true',
         help="Train across all available GPUs. Batches are split across GPUs. Not yet implemented")
-
+    t.add_argument('--stats-path',type=str,
+        help="Path to statistics files")
 
     # Prediction subparser
     pp = subparsers.add_parser('predict', help="Predict using SavedModel")
@@ -81,7 +82,9 @@ def create_parser():
         '-m', '--model-dir', required=True, help="Path to directory containing the model.")
     ###
     ppp.add_argument('--output-dir',required= False, help="Name of output directory.",default=None)
-
+    ppp.add_argument('--stats-path',type=str,
+        help="Path to statistics files")
+    
     # pval subparser
     pv = subparsers.add_parser('pval', help="Get pvals for each scan in a csv.")
     pv.add_argument('--input-csv',required=True, help="Filepath to csv containing scan paths.")
@@ -90,8 +93,7 @@ def create_parser():
     ###
     pvp.add_argument('--reference-csv',required= False, help="Reference csv containing scores for "
         "the training set.",default=None)
-
-
+    
     # csv_to_pvals subparser
     c2p = subparsers.add_parser('csv_to_pvals', help="Predict using SavedModel")
     c2p.add_argument('--input-csv', required=True,help="Filepath to csv containing scan paths.")
@@ -109,6 +111,8 @@ def create_parser():
                      help="Length of X,Y,Z dims in number of voxels")
     c2pp.add_argument('--voxel-dims',default=[1.0,1.0,1.0],type= float,nargs=3,
                      help="Length of X,Y,Z dims of voxels in mm")
+    c2pp.add_argument('--stats-path',type=str,
+                     help="Path to statistics files")
 
   # conform_csv subparser
     c2c = subparsers.add_parser('conform_csv', help="Conform all scans in csv as required to be useful input to neural network")
@@ -119,8 +123,6 @@ def create_parser():
                      help="Length of X,Y,Z dims in number of voxels")
     c2cp.add_argument('--voxel-dims',default=[1.0,1.0,1.0],type=float,nargs=3,
                      help="Length of X,Y,Z dims of voxels in mm")
-
-
 
     return p
 
@@ -142,6 +144,7 @@ def train(params):
         batch_size=params['batch_size'],
         n_epochs=params['n_epochs'],
         multi_gpu=params['multi_gpu'],
+        stats_path=params['stats_path'],
         )
 
 def predict(params):
@@ -150,6 +153,7 @@ def predict(params):
         input_csv=params['input_csv'],
         output_csv=params['output_csv'],
         output_dir=params['output_dir'],
+        stats_path=params['stats_path'],
         )
 
 def pval(params):
@@ -176,7 +180,8 @@ def csv_to_pvals(params):
         reference_csv=params['reference_csv'],
         clean_input_csv=bool(params['clean_input_csv']),
         target_shape=tuple(params['target_shape']),
-        voxel_dims=params['voxel_dims']
+        voxel_dims=params['voxel_dims'],
+        stats_path=params['stats_path'],
         )
 
 

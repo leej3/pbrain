@@ -20,7 +20,7 @@ import scipy as sp
 
 def csv_to_pvals(input_csv,model_dir=None,output_dir=None,output_csv=None,
     reference_csv=None,clean_input_csv=True,target_shape=(256,256,256),
-    voxel_dims=(1.0,1.0,1.0)):
+    voxel_dims=(1.0,1.0,1.0),stats_path=''):
 
     # Set defaults
     if not output_csv:
@@ -50,7 +50,7 @@ def csv_to_pvals(input_csv,model_dir=None,output_dir=None,output_csv=None,
     # Predict if required
     test_df = pd.read_csv(output_csv)
     if not 'score' in test_df.columns:
-        predict(model_dir,output_csv,output_csv,output_dir)
+        predict(model_dir,output_csv,output_csv,output_dir,stats_path)
 
     # Compute pvalues and write to output csv
     pval(output_csv,output_csv,reference_csv=reference_csv)

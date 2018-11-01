@@ -13,14 +13,14 @@ from random import shuffle
 
 
 
-def train(model_dir,input_csv,batch_size,n_epochs,multi_gpu):
+def train(model_dir,input_csv,batch_size,n_epochs,multi_gpu,stats_path):
     lr = 0.0001
     contents, batch_per_ep, _ = csv_to_batches(input_csv, batch_size)
 
     ae_inputs = tf.placeholder(tf.float32, (None, 256, 256, 256, 1))  # input to the network (MNIST images)
     ae_outputs, mean, log_stddev = autoencoder(ae_inputs)  # create the Autoencoder network
 
-    loss, recon_loss, kl_loss = get_loss(ae_inputs,ae_outputs,mean,log_stddev)
+    loss, recon_loss, kl_loss = get_loss(ae_inputs,ae_outputs,mean,log_stddev,stats_path)
 
     train_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(loss)
 
@@ -38,7 +38,7 @@ def train(model_dir,input_csv,batch_size,n_epochs,multi_gpu):
             i = 0
             for batch in batches:  # batches loop
                 time1 = time.time()
-                batch_img = get_batch(batch)
+                batch_img = get_batch(batch,stats_path=stats_path)
 
                 # save model for every 10 samples. 
                 if not i%10:

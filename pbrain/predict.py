@@ -9,7 +9,7 @@ from pathlib import Path
 # from pbrain.util import zscore
 
 
-def predict(model_dir,input_csv,output_csv,output_dir):
+def predict(model_dir,input_csv,output_csv,output_dir,stats_path):
     print("Running prediction...")
     contents, batch_per_ep, df = csv_to_batches(input_csv, batch_size=1)
 
@@ -18,7 +18,7 @@ def predict(model_dir,input_csv,output_csv,output_dir):
     ae_inputs = tf.placeholder(tf.float32, (None, 256, 256, 256, 1))  # input to the network (MNIST images)
     ae_outputs, mean, log_stddev = autoencoder(ae_inputs)  # create the Autoencoder network
 
-    loss, recon_loss, kl_loss = get_loss(ae_inputs,ae_outputs,mean,log_stddev)
+    loss, recon_loss, kl_loss = get_loss(ae_inputs,ae_outputs,mean,log_stddev,stats_path)
 
     # predict_op = tf.train.AdamOptimizer(learning_rate=lr).minimize(loss)
 
@@ -32,7 +32,7 @@ def predict(model_dir,input_csv,output_csv,output_dir):
         saver.restore(sess, model_dir + "/model.ckpt")
 
         for ii, orig_path in enumerate(contents):  # batches loop
-            z_img, orig_img = get_image(orig_path)
+            z_img, orig_img = get_image(orig_path,stats_path=stats_path)
 
             # change shape from 256 x 256 x 256 to (1, 256, 256, 256, 1)
             batch_img =  z_img[...,None]
