@@ -13,10 +13,11 @@ from pbrain.util import clean_csv, str2bool
 from pbrain.util import conform_csv as _conform_csv
 from pbrain.util import setup_exceptionhook
 import pbrain
+from pathlib import Path
 
-STATS_PATH = (Path(pbrain.__file__).parent.parent / 'reference_files' / 'reference_stats')
-MODELS_PATH = (Path(pbrain.__file__).parent.parent / 'reference_files' / 'reference_models')
-CSV_PATH = (Path(pbrain.__file__).parent.parent / 'reference_files' / 'reference.csv')
+STATS_PATH = (Path(pbrain.__file__).parent.parent / 'reference_files' / 'reference_stats').as_posix()
+MODELS_PATH = (Path(pbrain.__file__).parent.parent / 'reference_files' / 'reference_models').as_posix()
+CSV_PATH = (Path(pbrain.__file__).parent.parent / 'reference_files' / 'reference.csv').as_posix()
 
 def create_parser():
     """Return argument parser for pbrain training interface."""
