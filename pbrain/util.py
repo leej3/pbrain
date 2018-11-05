@@ -62,7 +62,7 @@ def conform_csv(input_csv, output_csv, target_shape, voxel_dims):
                     voxel_dims=voxel_dims)
             # except nibabel.spatialimages.HeaderDataError:
             except:
-                print("Error: Not including {scan_path}")
+                print(f"Error: Not including {scan_path}")
                 df.drop([ii])
                 continue
 
