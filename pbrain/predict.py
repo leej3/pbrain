@@ -31,8 +31,17 @@ def predict(model_dir,input_csv,output_csv,output_dir,stats_path):
         sess.run(init)
         saver.restore(sess, model_dir + "/model.ckpt")
 
+        error_num = 0
+        max_errors_allowed = 100
         for ii, orig_path in enumerate(contents):  # batches loop
-            z_img, orig_img = get_image(orig_path,stats_path=stats_path)
+            try:        
+                z_img, orig_img = get_image(orig_path,stats_path=stats_path)
+            except Exception as e:
+                print(f"Failure for {orig_path}: {e}\n")
+                error_num += 1
+                if error_num > max_errors_allowed:
+                    raise ValueError(
+                        "Too many exceptions occurred while reading the images")
 
             # change shape from 256 x 256 x 256 to (1, 256, 256, 256, 1)
             batch_img =  z_img[...,None]
