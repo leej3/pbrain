@@ -24,7 +24,7 @@ def clean_csv(input_csv, output_csv):
         to_csv(output_csv, index=False, sep=',')
      )
     not_used = ' '.join(df.query("~loads")[df.columns[0]])
-    print(f"Not using {not_used}")
+    print(f"Not using the following scans: {not_used}")
 
 
 def conform_csv(input_csv, output_csv, target_shape, voxel_dims):
@@ -64,7 +64,6 @@ def conform_csv(input_csv, output_csv, target_shape, voxel_dims):
             except:
                 print("Error: Not including {scan_path}")
                 df.drop([ii])
-                nib.save(conformed, conformed_path)
                 continue
 
             # Write image to disk
