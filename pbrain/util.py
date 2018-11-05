@@ -93,7 +93,9 @@ def str2bool(v):
 def check_nibload(input_path):
 
     try:
-        nib.load(input_path).get_data()
+        nifti = nib.load(input_path)
+        nifti.get_data()
+        assert(nifti.header['sform_code'] > 0)
     except Exception as e:
         print(e)
         print("Failure, could not read this file: ", input_path)
