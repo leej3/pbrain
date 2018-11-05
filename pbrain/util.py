@@ -24,7 +24,7 @@ def clean_csv(input_csv, output_csv):
         to_csv(output_csv, index=False, sep=',')
      )
     not_used = ' '.join(df.query("~loads")[df.columns[0]])
-    print(f"Not using {not_used}")
+    print(f"Not using the following scans: {not_used}")
 
 
 def conform_csv(input_csv, output_csv, target_shape, voxel_dims):
@@ -62,9 +62,8 @@ def conform_csv(input_csv, output_csv, target_shape, voxel_dims):
                     voxel_dims=voxel_dims)
             # except nibabel.spatialimages.HeaderDataError:
             except:
-                print("Error: Not including {scan_path}")
+                print(f"Error: Not including {scan_path}")
                 df.drop([ii])
-                nib.save(conformed, conformed_path)
                 continue
 
             # Write image to disk
@@ -93,7 +92,9 @@ def str2bool(v):
 def check_nibload(input_path):
 
     try:
-        nib.load(input_path).get_data()
+        nifti = nib.load(input_path)
+        nifti.get_data()
+        assert(nifti.header['sform_code'] > 0)
     except Exception as e:
         print(e)
         print("Failure, could not read this file: ", input_path)
