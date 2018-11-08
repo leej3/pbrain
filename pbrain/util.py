@@ -104,9 +104,10 @@ def check_nibload(input_path):
 def zscore_with_stats(a,stats_path):
     """Return array of z-scored values."""
     a = np.asarray(a)
-    #df = pd.read_csv(stats_path + '/input_stats.csv') 
-    mean = a.mean()#df['mean'][0]
-    std = a.std()#df['std'][0]
+    a = 255.0 * a / a.max()
+    df = pd.read_csv(stats_path + '/input_stats.csv') 
+    mean = df['mean'][0]
+    std = df['std'][0]
     if std == 0:
         std = 10**-7
     return (a - mean) / std
