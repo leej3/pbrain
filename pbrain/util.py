@@ -19,6 +19,7 @@ def clean_csv(input_csv, output_csv):
     print('Cleaning csv file of images that cannot be loaded by nibabel')
     df = pd.read_csv(input_csv)
     df['loads'] = df[df.columns[0]].apply(check_nibload)
+    df.to_csv('tmp.csv',index=False,sep=',')
     (df.query('loads').
         drop('loads', inplace=False,axis = 1).
         to_csv(output_csv, index=False, sep=',')
