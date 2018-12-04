@@ -107,6 +107,8 @@ def zscore_with_stats(a,stats_path):
     a = np.asarray(a)
     a = 255.0 * a / a.max()
     df = pd.read_csv(stats_path + '/input_stats.csv') 
+    mean = a.mean()
+    std = a.std()
     mean = df['mean'][0]
     std = df['std'][0]
     if std == 0:
@@ -116,6 +118,7 @@ def zscore_with_stats(a,stats_path):
 
 def zscore(a):
     """Return array of z-scored values."""
+    a = 255.0 * a / a.max()
     a = np.asarray(a)
     std = a.std()
     if std == 0:
@@ -156,10 +159,8 @@ def get_image(image_path, image_shape=(256, 256, 256), voxel_dims=[1, 1, 1],stat
     orig_img = nib.load(image_path)
     if orig_img.shape != image_shape:
         conform_image(img=orig_img, target_shape=image_shape)
-    if stats_path:
-        z_img = zscore_with_stats(orig_img.get_data(),stats_path)
-    else:
-        z_img = zscore(orig_img.get_data())
+
+    z_img = zscore(orig_img.get_data())
     return z_img, orig_img
 
 
