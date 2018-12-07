@@ -96,6 +96,7 @@ def check_nibload(input_path):
         nifti = nib.load(input_path)
         nifti.get_data()
         assert(nifti.header['sform_code'] > 0)
+        print("Successfully read :", input_path)
     except Exception as e:
         print(e)
         print("Failure, could not read this file: ", input_path)
