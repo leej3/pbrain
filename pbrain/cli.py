@@ -76,6 +76,12 @@ def create_parser():
         help="Train across all available GPUs. Batches are split across GPUs. Not yet implemented")
     t.add_argument('--stats-path',type=str,
         help="Path to statistics files",default=STATS_PATH)
+    t.add_argument('--clean-input-csv',default=True,type= lambda x: str2bool(x),
+                     help="Flag to check that all images in the csv can be loaded into nibabel. Write out a cleaned csv")
+    t.add_argument('--target-shape',default=[256,256,256],type= int,nargs=3,
+                     help="Length of X,Y,Z dims in number of voxels")
+    t.add_argument('--voxel-dims',default=[1.0,1.0,1.0],type= float,nargs=3,
+                     help="Length of X,Y,Z dims of voxels in mm")
 
     # Prediction subparser
     pp = subparsers.add_parser('predict', help="Predict using SavedModel")
@@ -149,6 +155,9 @@ def train(params):
         n_epochs=params['n_epochs'],
         multi_gpu=params['multi_gpu'],
         stats_path=params['stats_path'],
+        clean_input_csv=bool(params['clean_input_csv']),
+        target_shape=tuple(params['target_shape']),
+        voxel_dims=params['voxel_dims'],
         )
 
 def predict(params):

@@ -1,19 +1,24 @@
 # -*- coding: utf-8 -*-
-import tensorflow.contrib.layers as lays
-import nibabel as nib
+# import tensorflow.contrib.layers as lays
+# import nibabel as nib
 import tensorflow as tf
-import numpy as np
+# import numpy as np
 import time
-import pandas as pd
+# import pandas as pd
 from pathlib import Path
 from pbrain.models.vae3d import autoencoder
-from pbrain.util import get_batch,get_loss,csv_to_batches,zscore
+from pbrain.util import get_batch,get_loss,csv_to_batches, clean_csv, conform_csv
 from random import shuffle
-# from pbrain.util import zscore
+# from pbrain.util import
 
 
 
-def train(model_dir,input_csv,batch_size,n_epochs,multi_gpu,stats_path):
+def train(model_dir,input_csv,batch_size,n_epochs,multi_gpu,stats_path,clean_input_csv,target_shape,voxel_dims):
+    if clean_input_csv:
+        clean_csv(input_csv, input_csv)
+
+    conform_csv(input_csv,input_csv,target_shape, voxel_dims) 
+
     lr = 0.0001
     contents, batch_per_ep, _ = csv_to_batches(input_csv, batch_size)
 
